@@ -53,18 +53,16 @@ def options(opt):
     # install directories
     opt.add_option(
         '--htmldir',
-        type='string',
         default=None,
         help='HTML documentation directory [Default: <prefix>/share/jack-audio-connection-kit/reference/html/',
     )
-    opt.add_option('--libdir', type='string', help='Library directory [Default: <prefix>/lib]')
-    opt.add_option('--pkgconfigdir', type='string', help='pkg-config file directory [Default: <libdir>/pkgconfig]')
-    opt.add_option('--mandir', type='string', help='Manpage directory [Default: <prefix>/share/man/man1]')
+    opt.add_option('--libdir', help='Library directory [Default: <prefix>/lib]')
+    opt.add_option('--pkgconfigdir', help='pkg-config file directory [Default: <libdir>/pkgconfig]')
+    opt.add_option('--mandir', help='Manpage directory [Default: <prefix>/share/man/man1]')
 
     # options affecting binaries
     opt.add_option(
         '--platform',
-        type='string',
         default=sys.platform,
         help='Target platform for cross-compiling, e.g. cygwin or win32',
     )
@@ -76,8 +74,8 @@ def options(opt):
     )
     opt.add_option('--debug', action='store_true', default=False, dest='debug', help='Build debuggable binaries')
     opt.add_option('--siginfo', action='store_true', default=False, dest='siginfo', help="Log backtrace on fatal signal")
-    opt.add_option('--distname', type='string', default=None, help="Name for the distribution tarball")
-    opt.add_option('--distsuffix', type='string', default="", help="String to append to the distribution tarball name")
+    opt.add_option('--distname', default=None, help="Name for the distribution tarball")
+    opt.add_option('--distsuffix', default="", help="String to append to the distribution tarball name")
 #    opt.add_option('--tagdist', action='store_true', default=False, help='Create of git tag for distname')
 
     #opt.set_auto_options_define('HAVE_%s')
