@@ -1,6 +1,11 @@
 News
 #########
 
+* jackdbus 2.23.2 (2024-MM-DD)
+
+  * Stop recurrent wakeups when no save is pending (Stefan Bruens)
+  * Upgrade waf to 2.1.2
+
 * jackdbus 2.23.1 (2024-06-13)
 
   * update waftoolchainflags submodule
