@@ -720,7 +720,7 @@ jack_controller_destroy(
     free(controller_ptr);
 }
 
-bool
+void
 jack_controller_run(
     void * context)
 {
@@ -728,7 +728,7 @@ jack_controller_run(
 
     if (controller_ptr->pending_save == 0)
     {
-        return false;
+        return;
     }
 
     if (sysinfo(&si) != 0)
@@ -737,12 +737,11 @@ jack_controller_run(
     }
     else if (si.uptime < controller_ptr->pending_save + 2) /* delay save by two seconds */
     {
-        return true;
+        return;
     }
 
     controller_ptr->pending_save = 0;
     jack_controller_settings_save_auto(controller_ptr);
-    return false;
 }
 
 #undef controller_ptr

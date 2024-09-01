@@ -20,13 +20,11 @@
 #ifndef CONTROLLER_H__2CC80B1E_8D5D_45E3_A9D8_9086DDF68BB5__INCLUDED
 #define CONTROLLER_H__2CC80B1E_8D5D_45E3_A9D8_9086DDF68BB5__INCLUDED
 
-#include <stdbool.h>
-
 void *
 jack_controller_create(
     DBusConnection *connection);
 
-bool
+void
 jack_controller_run(
     void *controller_ptr);
 
