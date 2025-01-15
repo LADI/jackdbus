@@ -187,6 +187,8 @@ def configure(conf):
             flags.add_c('-Werror=implicit-int')
             flags.add_c('-Werror=incompatible-pointer-types')
             flags.add_c('-Werror=strict-prototypes')
+
+    conf.env['BUILD_DEBUG'] = Options.options.debug
     if conf.env['BUILD_DEBUG']:
         flags.add_c(['-O0', '-g', '-fno-omit-frame-pointer'])
         flags.add_link('-g')
