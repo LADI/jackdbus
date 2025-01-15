@@ -173,7 +173,7 @@ def configure(conf):
         flags.add_c(['-Wno-variadic-macros', '-Wno-gnu-zero-variadic-macro-arguments'])
 
         # https://wiki.gentoo.org/wiki/Modern_C_porting
-        if conf.env['CC'] == 'clang':
+        if conf.env['CC_NAME'] == 'clang':
             flags.add_c('-Wno-unknown-argument')
             flags.add_c('-Werror=implicit-function-declaration')
             flags.add_c('-Werror=incompatible-function-pointer-types')
