@@ -1,6 +1,6 @@
 /* -*- Mode: C ; c-basic-offset: 4 -*- */
 /*
-    Copyright (C) 2007-2024 Nedko Arnaudov
+    Copyright (C) 2007-2025 Nedko Arnaudov
     Copyright (C) 2007-2008 Juuso Alasuutari
 
     This program is free software; you can redistribute it and/or modify
@@ -483,13 +483,19 @@ jack_controller_create(
 
     INIT_LIST_HEAD(&controller_ptr->session_pending_commands);
 
+    if (device_reservation_init(connection, controller_ptr) != 0)
+    {
+        jack_error("Failed to initialize device reservation module");
+        goto fail_uninit_mutex;
+    }
+
     controller_ptr->server = jackctl_server_create(
         device_reservation_acquire,
         device_reservation_release);
     if (controller_ptr->server == NULL)
     {
         jack_error("Failed to create server object");
-        goto fail_uninit_mutex;
+        goto fail_uninit_device_reservation;
     }
 
     controller_ptr->params = jack_params_create(controller_ptr->server);
@@ -548,6 +554,9 @@ fail_destroy_params:
 
 fail_destroy_server:
     jackctl_server_destroy(controller_ptr->server);
+
+fail_uninit_device_reservation:
+    device_reservation_finish();
 
 fail_uninit_mutex:
     pthread_mutex_destroy(&controller_ptr->lock);
@@ -716,6 +725,7 @@ jack_controller_destroy(
     jack_controller_remove_slave_drivers(controller_ptr);
     jack_params_destroy(controller_ptr->params);
     jackctl_server_destroy(controller_ptr->server);
+    device_reservation_finish();
     pthread_mutex_destroy(&controller_ptr->lock);
     free(controller_ptr);
 }
@@ -762,3 +772,67 @@ jack_controller_pending_save(
 
     controller_ptr->pending_save = si.uptime;
 }
+
+#define controller_ptr ((struct jack_controller *)ctx)
+
+static union jackctl_parameter_value g_saved_driver_name_value;
+
+void device_reservation_on_takeover(void * ctx, const char * device_name)
+{
+    const char * address[PARAM_ADDRESS_SIZE];
+    const struct jack_parameter * param_ptr;
+
+    jack_info("Device \"%s\" taken over", device_name);
+
+    address[0] = PTNODE_ENGINE;
+    address[1] = PTNODE_DRIVER;
+    address[2] = NULL;
+
+    param_ptr = jack_params_get_parameter(controller_ptr->params, address);
+    if (param_ptr == NULL)
+    {
+        jack_error(
+            "Invalid container address '%s':'%s':'%s'.",
+            address[0],
+            address[1],
+            address[2]);
+        return;
+    }
+
+    g_saved_driver_name_value =  param_ptr->vtable.get_value(param_ptr->obj);
+
+    union jackctl_parameter_value value;
+    strcpy(value.str, "dummy");
+    param_ptr->vtable.set_value(param_ptr->obj, &value);
+    jack_info("Switching to \"%s\" driver", value.str);
+    jackctl_server_switch_master(controller_ptr->server, jack_params_get_driver(controller_ptr->params));
+}
+
+void device_reservation_on_giveback(void * ctx, const char * device_name)
+{
+    const char * address[PARAM_ADDRESS_SIZE];
+    const struct jack_parameter * param_ptr;
+
+    jack_info("Device \"%s\" given back", device_name);
+
+    address[0] = PTNODE_ENGINE;
+    address[1] = PTNODE_DRIVER;
+    address[2] = NULL;
+
+    param_ptr = jack_params_get_parameter(controller_ptr->params, address);
+    if (param_ptr == NULL)
+    {
+        jack_error(
+            "Invalid container address '%s':'%s':'%s'.",
+            address[0],
+            address[1],
+            address[2]);
+        return;
+    }
+
+    param_ptr->vtable.set_value(param_ptr->obj, &g_saved_driver_name_value);
+    jack_info("Switching to \"%s\" driver", g_saved_driver_name_value.str);
+    jackctl_server_switch_master(controller_ptr->server, jack_params_get_driver(controller_ptr->params));
+}
+
+#undef controller_ptr

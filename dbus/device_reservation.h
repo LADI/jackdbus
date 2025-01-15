@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2009 Grame
-    Copyright (C) 2024 Nedko Arnaudov
+    Copyright (C) 2024-2025 Nedko Arnaudov
     
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,12 +26,16 @@
 extern "C" {
 #endif
 
-int device_reservation_init(void);
+int device_reservation_init(DBusConnection * connection, void * ctx);
 int device_reservation_finish(void);
 
 bool device_reservation_acquire(const char * device_name);
 void device_reservation_release(const char * device_name);
 void device_reservation_loop(void);
+
+/* callbacks */
+void device_reservation_on_takeover(void * ctx, const char * device_name);
+void device_reservation_on_giveback(void * ctx, const char * device_name);
 
 #ifdef __cplusplus
 } /* extern "C" */

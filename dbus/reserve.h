@@ -3,6 +3,7 @@
 
 /***
   Copyright 2009 Lennart Poettering
+  Copyright 2025 Nedko Arnaudov
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -43,9 +44,16 @@ typedef struct rd_device rd_device;
  * it. Before returning your application should close the device in
  * question completely to make sure the new application may access
  * it. */
-typedef int (*rd_request_cb_t)(
+typedef int (*rd_request_release_cb_t)(
+	void *userdata,
 	rd_device *d,
 	int forced);                  /* Non-zero if an application forcibly took the lock away without asking. If this is the case then the return value of this call is ignored. */
+
+/* Prototype for a function that is called whenever device is released by other entity
+   and can be re-acquired */
+typedef void (*rd_available_cb_t)(
+	void *userdata,
+	rd_device *d);
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,12 +67,16 @@ int rd_acquire(
 	DBusConnection *connection,
 	const char *device_name,      /* The device to lock, e.g. "Audio0" */
 	const char *application_name, /* A human readable name of the application, e.g. "PulseAudio Sound Server" */
+	const char *application_device_name, /* ApplicationDeviceNamey (human readable device name in application's context). E.g. "My shiny device ACME No.1". May be NULL (optional property in PAX SOUND SERVERIS) */
 	int32_t priority,             /* The priority for this application. If unsure use 0 */
-	rd_request_cb_t request_cb,   /* Will be called whenever someone requests that this device shall be released. May be NULL if priority is INT32_MAX */
+	void *userdata,
+	rd_request_release_cb_t request_cb, /* Will be called whenever someone requests that this device shall be released. May be NULL if priority is INT32_MAX */
+	rd_available_cb_t available_cb,
 	DBusError *error);            /* If we fail due to a D-Bus related issue the error will be filled in here. May be NULL. */
 
 /* Unlock (if needed) and destroy an rd_device object again */
-void rd_release(rd_device *d);
+void rd_release(rd_device *d,
+	int no_unref);
 
 /* Set the application device name for an rd_device object. Returns 0
  * on success, a negative errno style return value on error. */

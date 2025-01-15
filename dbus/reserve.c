@@ -1,5 +1,6 @@
 /***
   Copyright 2009 Lennart Poettering
+  Copyright 2025 Nedko Arnaudov
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files
@@ -54,7 +55,8 @@ struct rd_device {
 	unsigned int filtering:1;
 	unsigned int gave_up:1;
 
-	rd_request_cb_t request_cb;
+	rd_request_release_cb_t request_cb;
+	rd_available_cb_t available_cb;
 	void *userdata;
 };
 
@@ -147,14 +149,14 @@ static DBusHandlerResult object_handler(
 		ret = FALSE;
 
 		if (priority > d->priority && d->request_cb) {
-			d->ref++;
+//			d->ref++;
 
-			if (d->request_cb(d, 0) > 0) {
+			if (d->request_cb(d->userdata, d, 0) > 0) {
 				ret = TRUE;
 				d->gave_up = 1;
 			}
 
-			rd_release(d);
+//			rd_release(d, 0);
 		}
 
 		if (!(reply = dbus_message_new_method_return(m)))
@@ -304,6 +306,8 @@ static DBusHandlerResult filter_handler(
 
 	d = (rd_device*)userdata;
 
+//	jack_info("filter_handler()");
+
 	if (dbus_message_is_signal(m, "org.freedesktop.DBus", "NameLost")) {
 		const char *name;
 
@@ -318,14 +322,40 @@ static DBusHandlerResult filter_handler(
 			d->owning = 0;
 
 			if (!d->gave_up)  {
-				d->ref++;
+//				d->ref++;
 
 				if (d->request_cb)
-					d->request_cb(d, 1);
+					d->request_cb(d->userdata, d, 1);
 				d->gave_up = 1;
 
-				rd_release(d);
+//				rd_release(d, 0);
 			}
+
+			return DBUS_HANDLER_RESULT_HANDLED;
+		}
+	}
+
+	if (dbus_message_is_signal(m, "org.freedesktop.DBus", "NameOwnerChanged")) {
+		const char *name;
+		const char *old_owner;
+		const char *new_owner;
+
+		if (!dbus_message_get_args(
+			    m,
+			    &error,
+			    DBUS_TYPE_STRING, &name,
+			    DBUS_TYPE_STRING, &old_owner,
+			    DBUS_TYPE_STRING, &new_owner,
+			    DBUS_TYPE_INVALID))
+			goto invalid;
+
+//		jack_info("NameOwnerChanged(%s,%s,%s)", name, old_owner, new_owner);
+		if (strcmp(name, d->service_name) == 0 &&
+		    strcmp(dbus_bus_get_unique_name(d->connection), old_owner) && /* skip own releses */
+		    *new_owner == 0 &&
+		    !d->owning)
+		{
+			d->available_cb(d->userdata, d);
 
 			return DBUS_HANDLER_RESULT_HANDLED;
 		}
@@ -365,8 +395,11 @@ int rd_acquire(
 	DBusConnection *connection,
 	const char *device_name,
 	const char *application_name,
+	const char *application_device_name,
 	int32_t priority,
-	rd_request_cb_t request_cb,
+	void *userdata,
+	rd_request_release_cb_t request_cb,
+	rd_available_cb_t available_cb,
 	DBusError *error) {
 
 	rd_device *d = NULL;
@@ -405,6 +438,8 @@ int rd_acquire(
 		goto fail;
 	}
 
+	if (*_d == NULL) {
+
 	if (!(d = (rd_device *)calloc(sizeof(rd_device), 1))) {
 		dbus_set_error(error, RESERVE_ERROR_NO_MEMORY, "Cannot allocate memory for rd_device struct");
 		r = -ENOMEM;
@@ -424,10 +459,18 @@ int rd_acquire(
 		r = -ENOMEM;
 		goto fail;
 	}
+	if (application_device_name)
+		if (!(d->application_device_name = strdup(application_device_name))) {
+			dbus_set_error(error, RESERVE_ERROR_NO_MEMORY, "Cannot duplicate application device name string");
+			r = -ENOMEM;
+			goto fail;
+		}
 
 	d->priority = priority;
 	d->connection = dbus_connection_ref(connection);
+	d->userdata = userdata;
 	d->request_cb = request_cb;
+	d->available_cb = available_cb;
 
 	if (!(d->service_name = (char*)malloc(sizeof(SERVICE_PREFIX) + strlen(device_name)))) {
 		dbus_set_error(error, RESERVE_ERROR_NO_MEMORY, "Cannot allocate memory for service name string");
@@ -442,6 +485,25 @@ int rd_acquire(
 		goto fail;
 	}
 	sprintf(d->object_path, OBJECT_PREFIX "%s", d->device_name);
+
+	dbus_bus_add_match(
+		d->connection,
+		"type='signal',"
+		"sender='org.freedesktop.DBus',"
+		"path='/org/freedesktop/DBus',"
+		"interface='org.freedesktop.DBus',"
+		"member='NameOwnerChanged'",
+		error);
+	if (dbus_error_is_set(error))
+	{
+		r = -ENOMEM;
+		goto fail;
+	}
+
+	} else { /* if (!*_d) { */
+		d = *_d;
+//		jack_info("reusing object for %s", d->device_name);
+	} /* if (!*_d) { */
 
 	if ((k = dbus_bus_request_name(
 		     d->connection,
@@ -590,33 +652,44 @@ fail:
 		dbus_error_free(&_error);
 
 	if (d)
-		rd_release(d);
+		rd_release(d, 0);
 
 	return r;
 }
 
 void rd_release(
-	rd_device *d) {
+	rd_device *d,
+	int release_name_only) {
+
+//	jack_info("rd_release(\"%s\", %d)", d->device_name, release_name_only);
 
 	if (!d)
 		return;
 
-	assert(d->ref > 0);
+	if (!release_name_only)
+	{
+		assert(d->ref > 0);
 
-	if (--d->ref)
-		return;
+		if (--d->ref)
+			return;
 
+		if (d->filtering) {
+//			jack_info("removing dbus filter registration");
+			dbus_connection_remove_filter(
+				d->connection,
+				filter_handler,
+				d);
+			d->filtering = 0;
+		}
+	}
 
-	if (d->filtering)
-		dbus_connection_remove_filter(
-			d->connection,
-			filter_handler,
-			d);
-
-	if (d->registered)
+	if (d->registered) {
+//		jack_info("unregistering dbus object path");
 		dbus_connection_unregister_object_path(
 			d->connection,
 			d->object_path);
+		d->registered = 0;
+	}
 
 	if (d->owning) {
 		DBusError error;
@@ -628,18 +701,24 @@ void rd_release(
 			&error);
 
 		dbus_error_free(&error);
+		d->owning = 0;
 	}
 
-	free(d->device_name);
-	free(d->application_name);
-	free(d->application_device_name);
-	free(d->service_name);
-	free(d->object_path);
+	if (!release_name_only)
+	{
+//		jack_info("destroying object for %s", d->device_name);
 
-	if (d->connection)
-		dbus_connection_unref(d->connection);
+		free(d->device_name);
+		free(d->application_name);
+		free(d->application_device_name);
+		free(d->service_name);
+		free(d->object_path);
 
-	free(d);
+		if (d->connection)
+			dbus_connection_unref(d->connection);
+
+		free(d);
+	}
 }
 
 int rd_set_application_device_name(rd_device *d, const char *n) {
