@@ -2,7 +2,7 @@
 # encoding: utf-8
 #
 # Copyright (C) 2015-2018 Karl Linden <karl.j.linden@gmail.com>
-# Copyleft (C) 2008-2024 Nedko Arnaudov
+# Copyleft (C) 2008-2025 Nedko Arnaudov
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -174,7 +174,7 @@ def configure(conf):
 
         # https://wiki.gentoo.org/wiki/Modern_C_porting
         if conf.env['CC'] == 'clang':
-            flags.add_c('-Wno-unknown-argumemt')
+            flags.add_c('-Wno-unknown-argument')
             flags.add_c('-Werror=implicit-function-declaration')
             flags.add_c('-Werror=incompatible-function-pointer-types')
             flags.add_c('-Werror=deprecated-non-prototype')
