@@ -99,6 +99,7 @@ device_reservation_request_cb(
 //    rd_release(ptr->reserved_device);
 //    memset(ptr, 0, sizeof(struct reserved_audio_device));
 
+    (void)forced;
     return 1;			/* device was released */
 }
 

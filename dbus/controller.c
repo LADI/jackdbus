@@ -448,6 +448,7 @@ static union jackctl_parameter_value slave_drivers_parameter_get_default_value(v
 {
     union jackctl_parameter_value value;
     value.str[0] = 0;
+    (void)obj;
     return value;
 }
 

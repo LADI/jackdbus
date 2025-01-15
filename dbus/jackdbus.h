@@ -1,6 +1,6 @@
 /* -*- Mode: C ; c-basic-offset: 4 -*- */
 /*
-    Copyright (C) 2007,2008 Nedko Arnaudov
+    Copyright (C) 2007-2025 Nedko Arnaudov
     Copyright (C) 2007-2008 Juuso Alasuutari
     Copyright (C) 2008 Marc-Olivier Barre
     
@@ -220,10 +220,12 @@ struct jack_dbus_interface_signal_descriptor signals_dtor[] =                   
 #define JACK_DBUS_IFACE_BEGIN(iface_var, iface_name)                                    \
 struct jack_dbus_interface_descriptor iface_var =                                       \
 {                                                                                       \
-        .name = iface_name,                                                             \
+        .name = iface_name,
+
+#define JACK_DBUS_IFACE_DEFAULT_HANDLER                                                 \
         .handler = jack_dbus_run_method,
 
-#define JACK_DBUS_IFACE_HANDLER(handler_func)                                           \
+#define JACK_DBUS_IFACE_HANDLER(handler_func)	\
         .handler = handler_func,
 
 #define JACK_DBUS_IFACE_EXPOSE_METHODS                                                  \

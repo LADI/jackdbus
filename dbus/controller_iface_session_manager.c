@@ -1,6 +1,6 @@
 /* -*- Mode: C ; c-basic-offset: 4 -*- */
 /*
-    Copyright (C) 2011 Nedko Arnaudov
+    Copyright (C) 2011-2025 Nedko Arnaudov
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -567,6 +567,7 @@ JACK_DBUS_SIGNALS_BEGIN
 JACK_DBUS_SIGNALS_END
 
 JACK_DBUS_IFACE_BEGIN(g_jack_controller_iface_session_manager, JACK_DBUS_IFACE_NAME)
+    JACK_DBUS_IFACE_DEFAULT_HANDLER
     JACK_DBUS_IFACE_EXPOSE_METHODS
     JACK_DBUS_IFACE_EXPOSE_SIGNALS
 JACK_DBUS_IFACE_END

@@ -7,6 +7,7 @@ News
     and use dummy driver when device ownership is taken.
   * Upgrade waf to 2.1.2
   * Make 'waf configure --debug' working againg
+  * Fix compiler warnings in --devmode
 
 * jackdbus 2.23.1 (2024-06-13)
 

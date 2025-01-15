@@ -1,6 +1,6 @@
 /* -*- Mode: C ; c-basic-offset: 4 -*- */
 /*
-    Copyright (C) 2011 Nedko Arnaudov
+    Copyright (C) 2011-2025 Nedko Arnaudov
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -428,6 +428,8 @@ union jackctl_parameter_value engine_driver_parameter_get_default_value(void * o
     union jackctl_parameter_value value;
 
     strcpy(value.str, DEFAULT_DRIVER);
+
+    (void)obj;
 
     return value;
 }

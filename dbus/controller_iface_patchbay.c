@@ -1,6 +1,6 @@
 /* -*- Mode: C ; c-basic-offset: 4 -*- */
 /*
-    Copyright (C) 2008 Nedko Arnaudov
+    Copyright (C) 2008-2025 Nedko Arnaudov
     Copyright (C) 2008 Juuso Alasuutari
 
     This program is free software; you can redistribute it and/or modify
@@ -571,6 +571,8 @@ jack_controller_patchbay_find_client_port_by_name(
             return port_ptr;
         }
     }
+
+    (void)patchbay_ptr;
 
     return NULL;
 }
@@ -1702,6 +1704,8 @@ void jack_controller_port_rename_callback(jack_port_id_t port, const char * old_
         port_ptr->name);
     jack_controller_patchbay_send_signal_graph_changed(patchbay_ptr->graph.version);
     pthread_mutex_unlock(&patchbay_ptr->lock);
+
+    (void)port;
 }
 
 #undef controller_ptr
@@ -1952,6 +1956,7 @@ JACK_DBUS_SIGNALS_BEGIN
 JACK_DBUS_SIGNALS_END
 
 JACK_DBUS_IFACE_BEGIN(g_jack_controller_iface_patchbay, JACK_DBUS_IFACE_NAME)
+    JACK_DBUS_IFACE_DEFAULT_HANDLER
     JACK_DBUS_IFACE_EXPOSE_METHODS
     JACK_DBUS_IFACE_EXPOSE_SIGNALS
 JACK_DBUS_IFACE_END

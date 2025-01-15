@@ -1,6 +1,6 @@
 /* -*- Mode: C ; c-basic-offset: 4 -*- */
 /*
-    Copyright (C) 2007,2008,2011 Nedko Arnaudov
+    Copyright (C) 2007-2025 Nedko Arnaudov
     Copyright (C) 2007-2008 Juuso Alasuutari
 
     This program is free software; you can redistribute it and/or modify
@@ -1026,5 +1026,6 @@ JACK_DBUS_METHODS_END
  */
 
 JACK_DBUS_IFACE_BEGIN(g_jack_controller_iface_configure, "org.jackaudio.Configure")
+    JACK_DBUS_IFACE_DEFAULT_HANDLER
     JACK_DBUS_IFACE_EXPOSE_METHODS
 JACK_DBUS_IFACE_END

@@ -440,7 +440,7 @@ int rd_acquire(
 
 	if (*_d == NULL) {
 
-	if (!(d = (rd_device *)calloc(sizeof(rd_device), 1))) {
+	if (!(d = (rd_device *)calloc(1, sizeof(rd_device)))) {
 		dbus_set_error(error, RESERVE_ERROR_NO_MEMORY, "Cannot allocate memory for rd_device struct");
 		r = -ENOMEM;
 		goto fail;

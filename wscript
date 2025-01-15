@@ -171,6 +171,7 @@ def configure(conf):
         #flags.add_c('-Wpedantic')
         flags.add_c('-Werror')
         flags.add_c(['-Wno-variadic-macros', '-Wno-gnu-zero-variadic-macro-arguments'])
+        flags.add_c('-Wno-missing-field-initializers');
 
         # https://wiki.gentoo.org/wiki/Modern_C_porting
         if conf.env['CC_NAME'] == 'clang':
@@ -181,6 +182,7 @@ def configure(conf):
             flags.add_c('-Werror=strict-prototypes')
             if int(conf.env['CC_VERSION'][0]) < 16:
                 flags.add_c('-Werror=implicit-int')
+            flags.add_c('-Wno-sometimes-uninitialized')
         else:
             flags.add_c('-Wno-unknown-warning-option')
             flags.add_c('-Werror=implicit-function-declaration')

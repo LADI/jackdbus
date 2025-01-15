@@ -1,6 +1,6 @@
 /* -*- Mode: C ; c-basic-offset: 4 -*- */
 /*
-    Copyright (C) 2007,2008,2010 Nedko Arnaudov
+    Copyright (C) 2007-2025 Nedko Arnaudov
     Copyright (C) 2007-2008 Juuso Alasuutari
     Copyright (C) 2008 Marc-Olivier Barre
 
@@ -246,6 +246,8 @@ jack_dbus_message_handler_unregister(
     void *data)
 {
     jack_info ("Message handler was unregistered");
+    (void)connection;
+    (void)data;
 }
 
 #undef object_ptr
