@@ -557,7 +557,7 @@ fail_destroy_server:
     jackctl_server_destroy(controller_ptr->server);
 
 fail_uninit_device_reservation:
-    device_reservation_finish();
+    device_reservation_uninit();
 
 fail_uninit_mutex:
     pthread_mutex_destroy(&controller_ptr->lock);
@@ -726,7 +726,7 @@ jack_controller_destroy(
     jack_controller_remove_slave_drivers(controller_ptr);
     jack_params_destroy(controller_ptr->params);
     jackctl_server_destroy(controller_ptr->server);
-    device_reservation_finish();
+    device_reservation_uninit();
     pthread_mutex_destroy(&controller_ptr->lock);
     free(controller_ptr);
 }

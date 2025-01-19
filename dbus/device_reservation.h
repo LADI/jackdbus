@@ -27,11 +27,10 @@ extern "C" {
 #endif
 
 int device_reservation_init(DBusConnection * connection, void * ctx);
-int device_reservation_finish(void);
+int device_reservation_uninit(void);
 
 bool device_reservation_acquire(const char * device_name);
 void device_reservation_release(const char * device_name);
-void device_reservation_loop(void);
 
 /* callbacks */
 void device_reservation_on_takeover(void * ctx, const char * device_name);
