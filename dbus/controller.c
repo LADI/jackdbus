@@ -489,6 +489,7 @@ jack_controller_create(
 
     paxsoundserveris_init(
 	    connection,
+	    "Jack audio server (jackdbus)",
 	    INT32_MAX - 1000,
 	    controller_ptr,
 	    device_reservation_on_takeover,
