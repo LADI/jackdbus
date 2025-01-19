@@ -33,7 +33,10 @@
 #include "controller.h"
 #include "controller_internal.h"
 #include "xml.h"
-#include "device_reservation.h"
+#include "paxsoundserveris.h"
+
+void device_reservation_on_giveback(void * ctx, const char * device_name);
+void device_reservation_on_takeover(void * ctx, const char * device_name);
 
 struct jack_dbus_interface_descriptor * g_jackcontroller_interfaces[] =
 {
@@ -484,15 +487,17 @@ jack_controller_create(
 
     INIT_LIST_HEAD(&controller_ptr->session_pending_commands);
 
-    if (device_reservation_init(connection, controller_ptr) != 0)
-    {
-        jack_error("Failed to initialize device reservation module");
-        goto fail_uninit_mutex;
-    }
+    paxsoundserveris_init(
+	    connection,
+	    INT32_MAX - 1000,
+	    controller_ptr,
+	    device_reservation_on_takeover,
+	    device_reservation_on_giveback,
+	    NULL);
 
     controller_ptr->server = jackctl_server_create(
-        device_reservation_acquire,
-        device_reservation_release);
+        paxsoundserveris_acquire,
+        paxsoundserveris_release);
     if (controller_ptr->server == NULL)
     {
         jack_error("Failed to create server object");
@@ -557,9 +562,9 @@ fail_destroy_server:
     jackctl_server_destroy(controller_ptr->server);
 
 fail_uninit_device_reservation:
-    device_reservation_uninit();
+    paxsoundserveris_uninit();
 
-fail_uninit_mutex:
+//fail_uninit_mutex:
     pthread_mutex_destroy(&controller_ptr->lock);
 
 fail_free:
@@ -726,7 +731,7 @@ jack_controller_destroy(
     jack_controller_remove_slave_drivers(controller_ptr);
     jack_params_destroy(controller_ptr->params);
     jackctl_server_destroy(controller_ptr->server);
-    device_reservation_uninit();
+    paxsoundserveris_uninit();
     pthread_mutex_destroy(&controller_ptr->lock);
     free(controller_ptr);
 }

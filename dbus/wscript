@@ -60,7 +60,7 @@ def build(bld):
     obj = bld(features=['c', 'cprogram'], idx=17)
     sysdeps_dbus_include = ['../linux']
 
-    obj.includes = sysdeps_dbus_include + ['.', '../', '../common', '../common/jack']
+    obj.includes = sysdeps_dbus_include + ['.', '../', '../common', '../common/jack', 'libpaxsoundserveris/include/paxsoundserveris-1']
 
     obj.defines = ['HAVE_CONFIG_H', 'SERVER_SIDE']
     obj.source = [
@@ -76,8 +76,8 @@ def build(bld):
         'xml.c',
         'xml_expat.c',
         'xml_write_raw.c',
-        'reserve.c',
-        'device_reservation.c',
+        'libpaxsoundserveris/src/reserve.c',
+        'libpaxsoundserveris/src/device_reservation.c',
         ]
     obj.use = ['JACKSERVER']
     if bld.env['IS_LINUX']:

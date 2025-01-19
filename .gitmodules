@@ -10,3 +10,6 @@
 [submodule "waftoolchainflags"]
 	path = waftoolchainflags
 	url = ../waf-toolchain-flags
+[submodule "dbus/libpaxsoundserveris"]
+	path = dbus/libpaxsoundserveris
+	url = ../libpaxsoundserveris
